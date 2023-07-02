@@ -23,6 +23,19 @@ class TransportStreamConsumer {
       console.log(`Received end event from upstream, code ${code}`);
       this.#onEnd();
     });
+    upstreamEmitter.on('metadata', (metadata) => {
+      fs.writeFile(
+        path.join(this.#outputPath, 'metadata.json'),
+        JSON.stringify(metadata, null, 2),
+        (err) => {
+          if (err) {
+            console.error(`Failed to write metadata for ${id}`);
+            return;
+          }
+          console.log(`Wrote metadata for ${id}`);
+        },
+      );
+    });
   }
 
   async ready() {
@@ -77,6 +90,7 @@ class TransportStreamConsumer {
   }
 
   async #onEnd() {
+    if (!this.#writer) return;
     console.log(`Closing ${this.#writer.path}`);
     this.#writer.close((err) => {
       if (!err) {

@@ -1,5 +1,6 @@
 const { spawn } = require('child_process');
 const { EventEmitter } = require('events');
+const { probeStream } = require('./utils');
 
 class TransportStreamProducer {
   #process;
@@ -27,10 +28,13 @@ class TransportStreamProducer {
     return this.#emitter;
   }
 
-  start() {
+  async start() {
     if (this.#startedAt) {
       throw Error('Already started');
     }
+    const { data: streamMeta } = await probeStream(this.#sourceUrl);
+    this.#emitter.emit('metadata', streamMeta);
+
     const now = new Date();
     this.#startedAt = now;
     this.#window.push({
@@ -38,7 +42,7 @@ class TransportStreamProducer {
       bytes: 0,
     });
     this.#windowTimestamp = now;
-    this.#process = spawn('streamlink', [
+    this.#process = streamMeta.is_live ? spawn('streamlink', [
       '--loglevel', 'debug',
       '--ffmpeg-verbose',
       '--ffmpeg-fout', 'mpegts',
@@ -46,7 +50,7 @@ class TransportStreamProducer {
       '--retry-open', '3',
       this.#sourceUrl,
       'best',
-    ]);
+    ]) : spawn('yt-dlp', ['-o', '-', this.#sourceUrl]);
     this.#process.stdout.on('data', (data) => {
       this.#onPayload(data);
     });

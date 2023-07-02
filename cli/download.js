@@ -9,7 +9,7 @@ async function main(argv) {
   const producer = new TransportStreamProducer(url);
   const segmentConsumer = new TransportStreamConsumer(
     id,
-    maxSegmentSize || 100 * 1024 * 1024,
+    parseInt(maxSegmentSize || 100 * 1024 * 1024, 10),
     producer.emitter,
   );
   const combinedConsumer = new TransportStreamConsumer(
@@ -19,7 +19,7 @@ async function main(argv) {
   );
   await segmentConsumer.ready();
   await combinedConsumer.ready();
-  producer.start();
+  await producer.start();
 }
 
 const [, , ...rest] = process.argv;
