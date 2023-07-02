@@ -24,7 +24,15 @@ class TransportStreamProducer {
       bytes: 0,
     });
     this.#windowTimestamp = now;
-    this.#process = spawn('streamlink', ['--stdout', sourceUrl, 'best']);
+    this.#process = spawn('streamlink', [
+      '--loglevel', 'debug',
+      '--ffmpeg-verbose',
+      '--ffmpeg-fout', 'mpegts',
+      '--stdout',
+      '--retry-open', '3',
+      sourceUrl,
+      'best',
+    ]);
     this.#process.stdout.on('data', (data) => {
       this.#onPayload(data);
     });
@@ -57,7 +65,7 @@ class TransportStreamProducer {
 
   #onMessage(chunk) {
     console.log(`Message ${chunk.toString()}`);
-    this.#consumers.forEach((consumer) => consumer.emitter.emit('data', chunk));
+    this.#consumers.forEach((consumer) => consumer.emitter.emit('message', chunk));
   }
 }
 
