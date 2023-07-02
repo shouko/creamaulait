@@ -1,4 +1,6 @@
 const fs = require('fs');
+const path = require('path');
+const { storagePath } = require('../config');
 
 class TransportStreamConsumer {
   #outputPath;
@@ -12,7 +14,7 @@ class TransportStreamConsumer {
   #sequence = 0;
 
   constructor(id, maxSegmentSize, upstreamEmitter) {
-    this.#outputPath = `./data/${id}`;
+    this.#outputPath = path.join(storagePath, id);
     this.#maxSegmentSize = maxSegmentSize;
     upstreamEmitter.on('data', (data) => {
       this.#onData(data);
@@ -57,7 +59,7 @@ class TransportStreamConsumer {
       this.#writer = null;
     }
     if (!this.#writer) {
-      this.#writer = fs.createWriteStream(`${this.#outputPath}/segment_${this.#sequence}.ts`, { flags: 'w' });
+      this.#writer = fs.createWriteStream(path.join(this.#outputPath, `segment_${this.#sequence}.ts`), { flags: 'w' });
       this.#currentSegmentSize = 0;
     }
     return this.#writer;

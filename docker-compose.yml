@@ -1,0 +1,27 @@
+version: '3'
+services:
+  web:
+    build: .
+    ports: [$PORT:3000]
+    volumes:
+      - datavol:/var/datavol
+    environment:
+      - PORT=3000
+      - STORAGE_PATH=/var/datavol/${RCLONE_B2_PREFIX}
+    healthcheck:
+      test: (ls /var/datavol && curl -f http://127.0.0.1:3000/) || exit 1
+      interval: 5s
+      timeout: 30s
+      retries: 5
+      start_period: 30s
+volumes:
+  datavol:
+    driver: rclone
+    driver_opts:
+      type: b2
+      b2_account: "${RCLONE_B2_ACCOUNT}"
+      b2_key: "${RCLONE_B2_KEY}"
+      b2_download_url: ${RCLONE_B2_DOWNLOAD_URL}
+      allow_other: 'true'
+      vfs_cache_mode: full
+      poll_interval: 0
