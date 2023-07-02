@@ -53,6 +53,9 @@ class TransportStreamProducer {
     this.#process.stderr.on('data', (data) => {
       this.#onMessage(data);
     });
+    this.#process.on('exit', (code) => {
+      this.#emitter.emit('end', code);
+    });
   }
 
   #onPayload(chunk) {

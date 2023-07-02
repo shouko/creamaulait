@@ -15,11 +15,12 @@ class TransportStreamConsumer {
 
   constructor(id, maxSegmentSize, upstreamEmitter) {
     this.#outputPath = path.join(storagePath, id);
-    this.#maxSegmentSize = maxSegmentSize;
+    this.#maxSegmentSize = maxSegmentSize || 0;
     upstreamEmitter.on('data', (data) => {
       this.#onData(data);
     });
-    upstreamEmitter.on('end', () => {
+    upstreamEmitter.on('end', (code) => {
+      console.log(`Received end event from upstream, code ${code}`);
       this.#onEnd();
     });
   }
@@ -59,7 +60,11 @@ class TransportStreamConsumer {
       this.#writer = null;
     }
     if (!this.#writer) {
-      this.#writer = fs.createWriteStream(path.join(this.#outputPath, `segment_${this.#sequence}.ts`), { flags: 'w' });
+      const filepath = path.join(
+        this.#outputPath,
+        this.#maxSegmentSize === 0 ? 'output.ts' : `segment_${this.#sequence}.ts`,
+      );
+      this.#writer = fs.createWriteStream(filepath, { flags: 'w' });
       this.#currentSegmentSize = 0;
     }
     return this.#writer;
@@ -72,9 +77,13 @@ class TransportStreamConsumer {
   }
 
   async #onEnd() {
+    console.log(`Closing ${this.#writer.path}`);
     this.#writer.close((err) => {
-      if (!err) return;
-      console.error('Failed to close', err);
+      if (!err) {
+        console.log(`Closed ${this.#writer.path}`);
+        return;
+      }
+      console.error(`Failed to close ${this.#writer.path}`, err);
     });
   }
 }
