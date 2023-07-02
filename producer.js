@@ -1,9 +1,12 @@
 const { spawn } = require('child_process');
+const { EventEmitter } = require('events');
 
 class TransportStreamProducer {
   #process;
 
-  #consumers;
+  #emitter;
+
+  #sourceUrl;
 
   #startedAt;
 
@@ -15,9 +18,20 @@ class TransportStreamProducer {
 
   #window = [];
 
-  constructor(sourceUrl, consumers) {
+  constructor(sourceUrl) {
+    this.#emitter = new EventEmitter();
+    this.#sourceUrl = sourceUrl;
+  }
+
+  get emitter() {
+    return this.#emitter;
+  }
+
+  start() {
+    if (this.#startedAt) {
+      throw Error('Already started');
+    }
     const now = new Date();
-    this.#consumers = consumers;
     this.#startedAt = now;
     this.#window.push({
       ts: now,
@@ -30,7 +44,7 @@ class TransportStreamProducer {
       '--ffmpeg-fout', 'mpegts',
       '--stdout',
       '--retry-open', '3',
-      sourceUrl,
+      this.#sourceUrl,
       'best',
     ]);
     this.#process.stdout.on('data', (data) => {
@@ -60,12 +74,12 @@ class TransportStreamProducer {
       this.#windowTimestamp = ts;
     }
 
-    this.#consumers.forEach((consumer) => consumer.emitter.emit('data', chunk));
+    this.#emitter.emit('data', chunk);
   }
 
   #onMessage(chunk) {
     console.log(`Message ${chunk.toString()}`);
-    this.#consumers.forEach((consumer) => consumer.emitter.emit('message', chunk));
+    this.#emitter.emit('message', chunk);
   }
 }
 

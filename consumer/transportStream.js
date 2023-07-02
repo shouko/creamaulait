@@ -1,9 +1,6 @@
 const fs = require('fs');
-const { EventEmitter } = require('events');
 
 class TransportStreamConsumer {
-  #emitter = new EventEmitter();
-
   #outputPath;
 
   #writer;
@@ -14,19 +11,36 @@ class TransportStreamConsumer {
 
   #sequence = 0;
 
-  constructor(id, maxSegmentSize) {
+  constructor(id, maxSegmentSize, upstreamEmitter) {
     this.#outputPath = `./data/${id}`;
     this.#maxSegmentSize = maxSegmentSize;
-    this.#emitter.on('data', (data) => {
+    upstreamEmitter.on('data', (data) => {
       this.#onData(data);
     });
-    this.#emitter.on('end', () => {
+    upstreamEmitter.on('end', () => {
       this.#onEnd();
     });
   }
 
-  get emitter() {
-    return this.#emitter;
+  async ready() {
+    return new Promise((resolve, reject) => {
+      fs.stat(this.#outputPath, (err, stats) => {
+        if (!err && stats.isDirectory()) {
+          resolve();
+          return;
+        }
+        if (err) {
+          fs.mkdir(this.#outputPath, (mkdirerr) => {
+            if (mkdirerr) {
+              return reject(mkdirerr);
+            }
+            return resolve();
+          });
+        } else if (stats.isFile()) {
+          reject();
+        }
+      });
+    });
   }
 
   async #getWriter() {
