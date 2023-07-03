@@ -1,3 +1,6 @@
+const { mkdtemp } = require('fs/promises');
+const path = require('path');
+const { tmpdir } = require('os');
 const { spawn } = require('child_process');
 const { EventEmitter } = require('events');
 const { probeStream } = require('./utils');
@@ -42,15 +45,22 @@ class TransportStreamProducer {
       bytes: 0,
     });
     this.#windowTimestamp = now;
-    this.#process = streamMeta.is_live ? spawn('streamlink', [
-      '--loglevel', 'debug',
-      '--ffmpeg-verbose',
-      '--ffmpeg-fout', 'mpegts',
-      '--stdout',
-      '--retry-open', '3',
-      this.#sourceUrl,
-      'best',
-    ]) : spawn('yt-dlp', ['-o', '-', this.#sourceUrl]);
+    if (streamMeta.is_live) {
+      this.#process = spawn('streamlink', [
+        '--loglevel', 'debug',
+        '--ffmpeg-verbose',
+        '--ffmpeg-fout', 'mpegts',
+        '--stdout',
+        '--retry-open', '3',
+        this.#sourceUrl,
+        'best',
+      ]);
+    } else {
+      const tempdir = await mkdtemp(path.join(tmpdir(), 'yt-dlp-'));
+      this.#process = spawn('yt-dlp', ['-o', '-', this.#sourceUrl], {
+        cwd: tempdir,
+      });
+    }
     this.#process.stdout.on('data', (data) => {
       this.#onPayload(data);
     });
