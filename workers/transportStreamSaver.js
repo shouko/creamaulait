@@ -1,8 +1,8 @@
-const fs = require('fs');
+const fs = require('fs-extra');
 const path = require('path');
 const { storagePath } = require('../config');
 
-class TransportStreamConsumer {
+class TransportStreamSaver {
   #outputPath;
 
   #writer;
@@ -23,40 +23,10 @@ class TransportStreamConsumer {
       console.log(`Received end event from upstream, code ${code}`);
       this.#onEnd();
     });
-    upstreamEmitter.on('metadata', (metadata) => {
-      fs.writeFile(
-        path.join(this.#outputPath, 'metadata.json'),
-        JSON.stringify(metadata, null, 2),
-        (err) => {
-          if (err) {
-            console.error(`Failed to write metadata for ${id}`);
-            return;
-          }
-          console.log(`Wrote metadata for ${id}`);
-        },
-      );
-    });
   }
 
-  async ready() {
-    return new Promise((resolve, reject) => {
-      fs.stat(this.#outputPath, (err, stats) => {
-        if (!err && stats.isDirectory()) {
-          resolve();
-          return;
-        }
-        if (err) {
-          fs.mkdir(this.#outputPath, (mkdirerr) => {
-            if (mkdirerr) {
-              return reject(mkdirerr);
-            }
-            return resolve();
-          });
-        } else if (stats.isFile()) {
-          reject();
-        }
-      });
-    });
+  async start() {
+    return fs.ensureDir(this.#outputPath);
   }
 
   async #getWriter() {
@@ -103,5 +73,5 @@ class TransportStreamConsumer {
 }
 
 module.exports = {
-  TransportStreamConsumer,
+  TransportStreamSaver,
 };
