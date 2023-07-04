@@ -37,7 +37,9 @@ router.post('/callback', async (req, res) => {
     const tokenSet = await client.callback(callbackUri, params);
     const claims = tokenSet.claims();
     req.session.claims = claims;
-    res.redirect('./status');
+    console.log(claims);
+    const url = '/auth/status';
+    res.send(`<meta http-equiv="refresh" content="0;URL=${url}">`);
   } catch (e) {
     console.error(e);
     res.sendStatus(400);
