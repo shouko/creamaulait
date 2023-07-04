@@ -4,7 +4,10 @@
       "es6": true,
       "node": true
     },
-    "extends": "airbnb-base",
+    "extends": [
+      "airbnb-base",
+      "next/core-web-vitals"
+    ],
     "globals": {
       "Atomics": "readonly",
       "SharedArrayBuffer": "readonly"

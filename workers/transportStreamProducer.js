@@ -3,7 +3,7 @@ const path = require('path');
 const { tmpdir } = require('os');
 const { spawn } = require('child_process');
 const { EventEmitter } = require('events');
-const { probeStream } = require('../utils');
+const { probeStream } = require('../server/utils');
 
 class TransportStreamProducer {
   #process;

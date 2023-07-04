@@ -1,43 +1,20 @@
-const express = require('express');
-const bodyParser = require('body-parser');
-const http = require('http');
-const socketio = require('socket.io');
+const next = require('next');
 const config = require('./config');
-const { probeStream } = require('./utils');
+const {
+  app: expressApp,
+  server,
+} = require('./server/app');
 
-const app = express();
-const server = http.createServer(app);
-const io = socketio(server);
+const dev = process.env.NODE_ENV !== 'production';
+const app = next({ dev });
+const handle = app.getRequestHandler();
 
-io.on('connection', (socket) => {
-  socket.on('message', (msg) => {
-    console.log('message', msg);
-    io.emit('message', msg);
+app.prepare().then(() => {
+  expressApp.all('*', (req, res) => handle(req, res));
+
+  const listener = server.listen(config.port, () => {
+    console.info(`Listening on port ${listener.address().port}!`);
   });
-});
-
-app.disable('x-powered-by');
-app.use(bodyParser.urlencoded({ extended: false }));
-app.use(bodyParser.json());
-app.use('/', express.static(`${__dirname}/public`));
-
-app.get('/', (req, res) => res.send('Hello World!'));
-
-app.post('/api/stream/probe', async (req, res) => {
-  const { url } = req.body;
-
-  const { error, data, stderr } = await probeStream(url);
-  if (error) {
-    return res.status(500).json(error);
-  }
-  return res.json({
-    data,
-    stderr,
-  });
-});
-
-const listener = server.listen(config.port, () => {
-  console.info(`Listening on port ${listener.address().port}!`);
 });
 
 process.on('exit', (code) => {
