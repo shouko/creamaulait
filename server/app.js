@@ -21,6 +21,7 @@ io.on('connection', (socket) => {
 app.disable('x-powered-by');
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
+app.set('trust proxy', 1);
 app.use(cookieSession({
   name: 'session',
   secret: secretKey,
