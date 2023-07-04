@@ -1,8 +1,11 @@
+const http = require('http');
 const express = require('express');
 const bodyParser = require('body-parser');
-const http = require('http');
+const cookieSession = require('cookie-session');
 const socketio = require('socket.io');
 const { probeStream } = require('./utils');
+const { secretKey, publicUrl } = require('../config');
+const authRoutes = require('./auth');
 
 const app = express();
 const server = http.createServer(app);
@@ -18,8 +21,17 @@ io.on('connection', (socket) => {
 app.disable('x-powered-by');
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
+app.use(cookieSession({
+  name: 'session',
+  secret: secretKey,
+  maxAge: 7 * 24 * 60 * 60 * 1000,
+  sameSite: 'strict',
+  secure: publicUrl.startsWith('https://'),
+}));
 
 app.get('/api', (req, res) => res.send('Hello World!'));
+
+app.use('/auth', authRoutes);
 
 app.post('/api/stream/probe', async (req, res) => {
   const { url } = req.body;

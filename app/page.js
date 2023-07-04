@@ -9,6 +9,12 @@ import FavoriteIcon from '@mui/icons-material/Favorite';
 import NavigationIcon from '@mui/icons-material/Navigation';
 
 export default function FloatingActionButtons() {
+  const [userInfo, setUserInfo] = React.useState({});
+
+  React.useEffect(() => {
+    fetch('/auth/status').then(async (r) => setUserInfo(await r.json()));
+  }, []);
+
   return (
     <Box sx={{ '& > :not(style)': { m: 1 } }}>
       <Fab color="primary" aria-label="add">
@@ -19,7 +25,7 @@ export default function FloatingActionButtons() {
       </Fab>
       <Fab variant="extended">
         <NavigationIcon sx={{ mr: 1 }} />
-        Navigate
+        {userInfo.name}
       </Fab>
       <Fab disabled aria-label="like">
         <FavoriteIcon />

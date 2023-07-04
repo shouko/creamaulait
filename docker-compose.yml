@@ -8,6 +8,9 @@ services:
     environment:
       - PORT=3000
       - STORAGE_PATH=/var/datavol/${RCLONE_B2_PREFIX}
+      - PUBLIC_URL=${PUBLIC_URL}
+      - OIDC_CLIENT_ID=${OIDC_CLIENT_ID}
+      - OIDC_CLIENT_SECRET=${OIDC_CLIENT_SECRET}
     healthcheck:
       test: (ls /var/datavol && curl -f http://127.0.0.1:3000/) || exit 1
       interval: 5s
