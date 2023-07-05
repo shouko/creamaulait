@@ -31,14 +31,19 @@ router.get('/login', (req, res) => {
   res.redirect(authUrl);
 });
 
+router.get('/logout', (req, res) => {
+  req.session.user = null;
+  res.redirect('/');
+});
+
 router.post('/callback', async (req, res) => {
   try {
     const params = client.callbackParams(req);
     const tokenSet = await client.callback(callbackUri, params);
     const claims = tokenSet.claims();
-    req.session.claims = claims;
+    req.session.user = claims;
     console.log(claims);
-    const url = '/auth/status';
+    const url = '/';
     res.send(`<meta http-equiv="refresh" content="0;URL=${url}">`);
   } catch (e) {
     console.error(e);
@@ -47,7 +52,7 @@ router.post('/callback', async (req, res) => {
 });
 
 router.get('/status', (req, res) => {
-  res.json(req.session.claims);
+  res.json(req.session.user);
 });
 
 module.exports = router;
