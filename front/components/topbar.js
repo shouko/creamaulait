@@ -10,7 +10,6 @@ import InboxIcon from '@mui/icons-material/MoveToInbox';
 import MailIcon from '@mui/icons-material/Mail';
 import Box from '@mui/material/Box';
 import LoginIcon from '@mui/icons-material/Login';
-import Link from 'next/link';
 
 import {
   Tooltip,
@@ -118,29 +117,23 @@ export default function Topbar() {
       <Toolbar />
       <Box sx={{ overflow: 'auto' }}>
         <List>
-          {['Inbox', 'Starred', 'Send email', 'Drafts'].map((text, index) => (
-            <ListItem key={text} disablePadding>
-              <ListItemButton>
-                <ListItemIcon>
-                  {index % 2 === 0 ? <InboxIcon /> : <MailIcon />}
-                </ListItemIcon>
-                <ListItemText primary={text} />
-              </ListItemButton>
-            </ListItem>
-          ))}
-        </List>
-        <Divider />
-        <List>
-          {['All mail', 'Trash', 'Spam'].map((text, index) => (
-            <ListItem key={text} disablePadding>
-              <ListItemButton>
-                <ListItemIcon>
-                  {index % 2 === 0 ? <InboxIcon /> : <MailIcon />}
-                </ListItemIcon>
-                <ListItemText primary={text} />
-              </ListItemButton>
-            </ListItem>
-          ))}
+          {
+            [
+              ['Inbox', 'Starred', 'Send email', 'Drafts'],
+              ['All mail', 'Trash', 'Spam'],
+              ['Inbox', 'Starred', 'Send email', 'Drafts'],
+            ].flatMap((items, i, sections) => [
+              ...items.map((text, j) => (<ListItem key={text} disablePadding>
+                <ListItemButton>
+                  <ListItemIcon>
+                    {j % 2 === 0 ? <InboxIcon /> : <MailIcon />}
+                  </ListItemIcon>
+                  <ListItemText primary={text} />
+                </ListItemButton>
+              </ListItem>)),
+              ...(i + 1 < sections.length ? [<Divider key={i} />] : []),
+            ])
+          }
         </List>
       </Box>
     </Drawer>
