@@ -123,7 +123,7 @@ export default function Topbar() {
               ['All mail', 'Trash', 'Spam'],
               ['Inbox', 'Starred', 'Send email', 'Drafts'],
             ].flatMap((items, i, sections) => [
-              ...items.map((text, j) => (<ListItem key={text} disablePadding>
+              ...items.map((text, j) => (<ListItem key={`${i}.${j}.${text}`} disablePadding>
                 <ListItemButton>
                   <ListItemIcon>
                     {j % 2 === 0 ? <InboxIcon /> : <MailIcon />}
