@@ -3,8 +3,9 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const cookieSession = require('cookie-session');
 const socketio = require('socket.io');
+const mongoose = require('mongoose');
 const { probeStream } = require('./utils');
-const { secretKey, publicUrl } = require('../config');
+const { secretKey, publicUrl, mongoDbUrl } = require('../config');
 const authRoutes = require('./auth');
 
 const app = express();
@@ -17,6 +18,8 @@ io.on('connection', (socket) => {
     io.emit('message', msg);
   });
 });
+mongoose.set('strictQuery', false);
+mongoose.connect(mongoDbUrl);
 
 app.disable('x-powered-by');
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -31,6 +34,17 @@ app.use(cookieSession({
 }));
 
 app.get('/api', (req, res) => res.send('Hello World!'));
+app.get('/api/data/nogizaka46/members', async (req, res) => {
+  try {
+    const resp = await fetch('https://www.nogizaka46.com/s/n46/api/list/member').then((r) => r.text());
+    const parsed = JSON.parse(resp.replace(/^res\((.+)\);?$/, '$1'));
+    res.json(parsed);
+  } catch (e) {
+    console.error(e);
+    res.sendStatus(500);
+  }
+});
+app.use('/api/mail', require('./mail'));
 
 app.use('/auth', authRoutes);
 

@@ -8,4 +8,5 @@ module.exports = {
   oidcIssuerUrl: process.env.OIDC_ISSUER_URL || 'https://accounts.google.com',
   oidcClientId: process.env.OIDC_CLIENT_ID,
   oidcClientSecret: process.env.OIDC_CLIENT_SECRET,
+  mongoDbUrl: process.env.MONGO_DB_URL,
 };
